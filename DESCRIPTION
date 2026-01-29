@@ -1,0 +1,51 @@
+Package: daVis
+Type: Package
+Title: Visualization Of Differential Expression Analysis
+Version: 0.99.0
+Date: 2026-01-29
+Authors@R: c(
+  person(given = "Katarzyna", family = "Gorczak", 
+    role = c("aut", "cre"), 
+    email = "katarzyna.gorczak@openanalytics.eu"),
+  person(given = "Laure", family = "Cougnaud", 
+    role = "aut", 
+    email = "laure.cougnaud@openanalytics.eu")
+  )
+Description: This package contains utility functions to visualize the output 
+    from differential expression analysis. The input can be either a 
+    model or a list of top tables or a combination of the two. 
+    The model can be output from limma, edgeR or DESeq2.
+Imports: 
+    edgeR,
+    ggh4x,
+    ggplot2,  
+    grDevices,
+    limma,
+    plyr,
+    stats,
+    utils
+Suggests:
+    AnnotationDbi,
+    Biobase,
+    DESeq2,
+    ggrepel,
+    ggtext,
+    knitr,
+    methods,
+    org.Mm.eg.db,
+    pander,
+    plotly,
+    rmarkdown,
+    S4Vectors,
+    scales,
+    testthat,
+    tools,
+    UpSetR
+URL: https://github.com/openanalytics/daVis
+BugReports: https://github.com/openanalytics/daVis/issues
+License: GPL-3
+biocViews: Visualization, DataRepresentation, DifferentialExpression,
+    Software, Microarray, RNASeq
+VignetteBuilder: knitr
+Encoding: UTF-8
+RoxygenNote: 7.2.3

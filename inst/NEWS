@@ -1,0 +1,13 @@
+CHANGES IN VERSION 0.99.0
+-------------------------
+
+First dev version of the package. Contains 8 functions to visualize data:
+
+  * daVolcanoPlot
+  * daLogRatioPlot
+  * daScatterPlot
+  * daHeatmapLogFC
+  * daUpset
+  * daWaterfallPlot
+  * daSignificantGenesBarplot
+  * daMAplot

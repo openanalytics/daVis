@@ -1,0 +1,773 @@
+---
+title: "daVis"
+subtitle: "Visualization of differential expression analysis output"
+author: "Katarzyna Górczak and Laure Cougnaud"
+date: "`r Sys.Date()`"
+output: 
+  BiocStyle::html_document:
+    toc: true
+    toc_float:
+      collapsed: true
+    number_sections: true
+    toc_depth: 4
+vignette: >
+  %\VignetteIndexEntry{daVis package}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+  
+```{r loadPackages, echo=FALSE, eval=TRUE}
+  
+suppressPackageStartupMessages({
+  library(daVis)
+  library(pander)
+})
+  
+```
+  
+  
+```{r optionsChunkDoNotModify, echo = FALSE, message = FALSE, warning = FALSE}
+  
+## Chunk with options for knitr. This chunk should not be modified.
+
+knitr::opts_chunk$set(
+  eval = TRUE,
+  echo = TRUE,
+  warning = FALSE,
+  dpi = 90,
+  fig.width = 7,
+  fig.height = 4
+)
+
+```
+
+# Introduction
+
+This document explains the functionalities available in the `daVis` package.
+
+`daVis` contains utility functions to visualize the output from 
+differential expression analysis. The input data can be a model, a 
+list of top tables, or a combination of these two. The model can be of class 
+`MArrayLM` (limma), `DGELRT` (edgeR), or `DESeqResults` (DESeq2).
+
+## Installation
+
+Download the package from Bioconductor:
+
+```{r echo = TRUE, eval = FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install("daVis")
+```
+
+<br>
+Note: to install development version direct from GitHub:
+```{r echo = TRUE, eval = FALSE}
+if (!requireNamespace("devtools", quietly = TRUE))
+  install.packages("devtools")
+
+devtools::install_github("openanalytics/daVis")
+```
+
+## Load the package into R session
+
+```{r echo = TRUE, eval = FALSE}
+library(daVis)
+```
+
+# Load data
+
+Each visualization function takes as an `input`:
+
+* **model** - an object of class `MArrayLM`, `DGELRT` or `DESeqResults`
+* **topTables** - a list of top tables for multiple coefficients
+* combination of the model and/or top table
+
+
+```{r loadData, echo=TRUE, eval=TRUE}
+tmpDir <- tempfile(); dir.create(tmpDir)
+exampleData <- createExampleData(
+	path = tmpDir, 
+	output = c("limma", "edgeR", "deseq2", "topTable")
+)
+res.limma <- exampleData$limma
+res.edger <- exampleData$edgeR
+res.deseq <- exampleData$DESeq2
+topTableList <- exampleData$topTable
+```
+
+## Top table
+
+The user should provide a named list of top tables for different 
+contrasts/coefficients. Here, the list contains 4 top tables from 4 comparisons.
+Each top table must contain the following columns: \'logFC\', \'P.Value\', 
+\'adj.P.Val\'. Additionally, each table can contain columns with gene 
+identifiers and averaged across all samples expression (\'AveExpr\' or 
+\'logCPM\').
+
+
+```{r topTable1}
+length(topTableList)
+
+```
+
+
+The names of the list are linked to the comparisons:
+
+```{r topTable2}
+names(topTableList)
+
+```
+
+Below a subset of an example top table: 
+
+```{r topTable3, echo=FALSE}
+pander(topTableList[[1]][seq_len(6), c(1, 2, 5, 6, 8, 9)], row.names = FALSE)
+
+```
+
+## Model
+
+The object **res.limma** is of class:
+
+
+```{r limmaModel}
+class(res.limma)
+
+```
+
+The object **res.edger** is of class:
+
+```{r edgerModel}
+class(res.edger)
+
+```
+
+The object **res.deseq** is of class:
+
+```{r deseqModel}
+class(res.deseq)
+
+```
+
+# Visualizations
+
+## Volcano plot
+
+A **volcano plot** 
+enables a quick visual identification of the size and significance of the 
+feature expression effects (top left/right). The significance of the effect is 
+represented by the raw p-value on the y axis, so highly significant features 
+are at the top of the plot. The size of the effect is represented by the log 
+of the fold change (negative/positive for down/up-regulation), so features with
+high effects are at the right/left side of the plot. Below, the color
+scale is used for adjusted p-values (corrected for multiple testing across
+genes).
+
+The documentation of the function containing description of each parameter
+can be obtained by:
+
+
+```{r volcanoPlotHelp, eval=FALSE}
+help("daVolcanoPlot", "daVis")
+
+```
+
+### Highlight top genes or genes of interest
+
+The function **`daVolcanoPlot()`** creates a volcano plot for the provided 
+model or list of top tables, or their combination. 
+The feature identifier can be specified by 
+`featuresIdVar` parameter. If empty (by default), row names of the input
+are used as feature identifiers. 
+The `colorVar`, `shapeVar`, `alphaVar` and/or `sizeVar` 
+parameters can be used to customize the plot. Here, the `colorVar` 
+parameter is used to color the points by adjusted p-value.
+The `topGenes` parameter represents the number of top genes with highest 
+logFC or p-value to highlight in the plot for each considered coefficient 
+(0 by default). The features are then labeled by `topGenesVar` parameter. 
+If empty, row names of the input are used.
+
+Additionally, a set of genes of interest can be highlighted in red. 
+The features can be specified using the `genesToHighlight` parameter and 
+`genesToHighlightVar` indicates the identifier used to label 
+genes of interest. `genesToHighlight` should be the same as the input data 
+row names.
+
+
+```{r volcanoPlot-top-genes}
+coefs <- c("B.LvsP", "L.LvsP")
+genesOfInterest <- c("497097", "20671", "239273", "14862", "27395", "76408")
+
+daVolcanoPlot(
+  input = res.limma, 
+  coef = coefs, 
+  coefLabel = c("A", "B"),
+  topGenes = 5,
+  topGenesVar = "SYMBOL",
+  genesToHighlight = genesOfInterest,
+  genesToHighlightVar = "SYMBOL",
+  colorVar = "adj.P.Val",
+  facetNCol = 2
+)
+
+```
+
+### Additional fdr threshold
+
+```{r volcanoPlot-logFC-threshold, eval=FALSE}
+coefs <- c("B.LvsP", "L.LvsP")
+
+daVolcanoPlot(
+  input = res.limma, 
+  coef = coefs, 
+  coefLabel = c("A", "B"),
+  facetNCol = 2,
+  additionalThresholdsAdjPValue = 0.1,
+  colorVar = "adj.P.Val"
+)
+
+```
+
+### Interactive plot
+
+The interactive volcano plot will be created by changing the `typePlot` 
+parameter.
+
+```{r volcanoPlot-interactive, eval=FALSE}
+coefs <- c("B.LvsP", "L.LvsP")
+
+daVolcanoPlot(
+  input = res.limma, 
+  coef = coefs, 
+  coefLabel = c("A", "B"),
+  typePlot = "interactive"
+)
+
+```
+
+## Log-ratio plot
+
+A **log-ratio plot** 
+represents the differential effect (e.g., treatment versus control) for several 
+conditions (e.g., compounds or concentrations) of the experiment (logFC scale).
+This enables to visualize a bigger subset of genes. The significance of genes 
+can be represented via colored rows, e.g., red denotes significant genes, while
+grey indicates non-significant genes.
+
+The documentation of the function containing description of each parameter 
+can be obtained by:
+
+```{r logRatioHelp, eval=FALSE}
+help("daLogRatioPlot", "daVis")
+
+```
+
+### Color feature labels
+
+The function **`daLogRatioPlot()`** creates a log-ratio plot for the provided
+model, top tables
+(or list of those). The features should be specified using the `features` 
+parameter, and the feature identifier can be specified using the 
+`featuresIdVar` parameter. If the `features` parameter is not provided, the 
+plot will display the top 20 features. The features labels can be colored by 
+using `featuresColor` parameter. 
+Here, the features are colored based on the significance for the 
+coefficient. Additionally, the features can be labeled by providing the 
+`featuresVar` parameter indicating the column names in the top table. 
+
+
+```{r logRatio-gene-color}
+coefs <- c("B.LvsP", "L.LvsP", "B.PvsV", "L.PvsV")
+
+features <- c(
+	daVis:::getTopFeatures(input = topTableList, coef = "B.LvsP", 
+		featuresIdVar = "ENTREZID", n = 10),
+	daVis:::getFeatures(input = topTableList, 
+		featuresIdVar = "ENTREZID")[10000:10009]
+)
+set.seed(123)
+features <- sample(features, 20)
+dt <- topTableList[['B.LvsP']]
+adjPVal <- dt[match(features, dt$ENTREZID), "adj.P.Val"]
+signFeature <- ifelse(adjPVal <= 0.05, "red", "grey")
+
+daLogRatioPlot(
+  input = topTableList,
+  features = features,
+  featuresIdVar = "ENTREZID",
+  featuresVar = c("SYMBOL", "GENENAME"),
+  featuresMaxNChar = 35,
+  coef = coefs,
+  coefLabel = c("A", "B", "C", "D"),
+  facetNCol = 4,
+  featuresColor = signFeature,
+  errorBars = FALSE
+)
+
+
+```
+
+### Facet by variable(s)
+
+The coefficients can be grouped by specifying multiple sets of labels to the
+`coefLabel` parameter. 
+The colors of the bars can be changed via `color`. 
+
+
+```{r logRatio-nested-facet}
+coefs <- c("B.LvsP", "L.LvsP", "B.PvsV", "L.PvsV")
+
+coefsLabel <- list(
+  sub("(.+)\\.(.+)", "\\2", coefs),
+  sub("(.+)\\.(.+)", "\\1", coefs)
+)
+
+colorPalette <- c(
+  `B.PvsV` = "darkgreen", `L.PvsV` = "lightgreen",
+  `B.LvsP` = "darkblue", `L.LvsP` = "lightblue"
+)
+
+daLogRatioPlot(
+  input = topTableList,
+  featuresIdVar = "ENTREZID",
+  coef = coefs,
+  coefLabel = coefsLabel,
+  facetNCol = 4,
+  errorBars = FALSE,
+  color = colorPalette
+)
+
+# Note: using coef labels as names of the color palette also works 
+# (if coefLabel is NOT a list) - for back-compatibility
+# colorPalette <- c(
+#   C = "darkgreen", D = "lightgreen",
+#   A = "darkblue", B = "lightblue"
+# )
+```
+
+### Mixed input
+
+The log ratio plot can be created for a (mixed) list of top table(s) and
+model(s).
+
+```{r logRatio-mixed-input}
+coefs <- c("B.LvsP", "L.LvsP", "B.PvsV", "L.PvsV", "A")
+
+daLogRatioPlot(
+  input = list(res.limma, A = topTableList[["B.LvsP"]]),
+  featuresIdVar = "ENTREZID",
+  coef = coefs,
+  facetNCol = 5,
+  errorBars = TRUE
+)
+```
+
+### Sort features
+
+The features can be sorted with the `featuresOrder` parameter.
+
+
+#### Based on significance
+
+```{r logRatio-order-significance}
+coefs <- c("B.LvsP", "L.LvsP", "B.PvsV", "L.PvsV")
+
+daLogRatioPlot(
+  input = res.limma,
+  featuresIdVar = "ENTREZID",
+  features = features, featuresOrder = "significance",
+  coef = coefs,
+  facetNCol = 4,
+  errorBars = TRUE
+)
+```
+
+### Display text
+
+A text can be displayed in the log ratio plot via the `text` parameter. 
+This can be a column of the top table or a function formatting such column(s).  
+If the text doesn't fit within the axes limits, the x-axis can be expanded 
+via the `xexpand` parameter.
+
+#### Significance star
+
+```{r logRatio-text-significanceStar}
+coefs <- c("B.LvsP", "L.LvsP", "B.PvsV", "L.PvsV")
+# Note: the format.pval function can be used to format the p-value as a text
+getSignifStar <- function(topTable){
+  with(topTable, as.character(
+    stats::symnum(
+      x = adj.P.Val, 
+      cutpoints = c(0, .001, .01, .05, .1, 1),
+      symbols = c("***","**","*","."," "),
+      corr = FALSE
+    )
+  ))
+}
+daLogRatioPlot(
+  input = res.limma,
+  coef = coefs,
+  coefLabel = c("A", "B", "C", "D"),
+  color = colorPalette,
+  facetNCol = 4,
+  text = getSignifStar
+)
+```
+
+#### Log fold change
+
+```{r logRatio-text-logFC}
+daLogRatioPlot(
+  input = res.limma,
+  coef = coefs,
+  coefLabel = c("A", "B", "C", "D"),
+  color = colorPalette,
+  facetNCol = 4,
+  text = function(topTable)
+    with(topTable, round(logFC, digits = 1)),
+  textCex = 3
+)
+```
+
+
+## Heatmap
+
+A **heatmap** 
+represents the differential effect (e.g. treatment versus control) for several
+conditions (e.g., compounds or concentrations) of the experiment. It is a 
+graphical representation of the individual values contained in a matrix as 
+colors. This enables to visualize a bigger subset of genes. The gene label can 
+be colored indicating for example the significance of genes, e.g., black color 
+denotes significant genes, while grey represents non-significant genes.
+
+The documentation of the function containing description of each parameter can 
+be obtained by:
+
+```{r heatmapHelp, eval=FALSE}
+help("daHeatmap", "daVis")
+
+```
+
+### Color feature labels
+
+The function **`daHeatmapLogFC()`** creates a heatmap for the provided model or 
+list of top tables. The features should be specified using the `features` 
+parameter, and the feature identifier can be specified using `featuresIdVar`. 
+The features are labeled by row names of input (or `featuresIdVar`) 
+by default. Different labels are possible by using the `featuresVar` parameter. 
+
+```{r heatmap-gene-color}
+coefs <- c("B.LvsP", "L.LvsP", "B.PvsV", "L.PvsV")
+
+daHeatmapLogFC(
+  input = topTableList,
+  features = features,
+  featuresIdVar = "ENTREZID",
+  featuresVar = c("SYMBOL", "GENENAME"),
+  featuresMaxNChar = 35,
+  coef = coefs,
+  coefLabel = c("A", "B", "C", "D"),
+  featuresColor = signFeature
+)
+
+```
+
+### Nested coefficient labels
+
+The coefficients can be grouped by specifying multiple sets of labels to the
+`coefLabel` parameter.
+
+```{r heatmap-nested-labels}
+coefs <- c("B.LvsP", "L.LvsP", "B.PvsV", "L.PvsV")
+
+coefsLabel <- list(
+  sub("(.+)\\.(.+)", "\\2", coefs),
+  sub("(.+)\\.(.+)", "\\1", coefs)
+)
+
+daHeatmapLogFC(
+  input = res.limma,
+  features = features,
+  featuresIdVar = "ENTREZID",
+  featuresVar = c("SYMBOL", "GENENAME"),
+  featuresMaxNChar = 35,
+  coef = coefs,
+  coefLabel = coefsLabel
+)
+
+```
+
+
+## Upset plot
+
+An **upset plot** 
+is used to represent the overlap (intersection) or difference of the sets of 
+significant genes, down or up-regulated separately, between different 
+differential effects. The different shades of blue are indicative for the 
+number of differential effects (sharing these up- or down-regulated genes).
+
+The documentation of the function containing description of each parameter 
+can be obtained by:
+
+```{r upsetHelp, eval=FALSE}
+help("daUpset", "daVis")
+
+```
+
+### Down-regulated genes
+
+The function **`daUpset()`** creates an upset plot for the provided model or 
+list of top tables. The sets are created based on the row names of input or 
+feature identifiers specified using the `featuresIdVar` parameter.
+
+
+```{r upset-down}
+daUpset(
+  input = topTableList,
+  coef = coefs,
+  featuresIdVar = "SYMBOL",
+  fdr = 0.05,
+  dir = "down",
+  ylab = paste("Number of (shared) significantly \n", 
+               "down-regulated genes"),
+  xlab = paste("Number of significantly \n", 
+               "down-regulated genes")
+)
+
+```
+
+### Return overlapping sets
+
+If `returnAnalysis` is set to TRUE, the output of the **`daUpset()`** 
+function is a list. The slot `sets` contains
+all the overlapping sets between specified coefficients. The sets contain 
+identifiers based on `featuresIdVar`. The slot `plot` contains the plot object.
+
+```{r upset-return-sets, eval=FALSE}
+out <- daUpset(
+  input = topTableList,
+  coef = coefs,
+  featuresIdVar = "SYMBOL",
+  fdr = 0.05,
+  dir = "down",
+  ylab = paste("Number of (shared) significantly \n", 
+               "down-regulated genes"),
+  xlab = paste("Number of significantly \n", 
+               "down-regulated genes"),
+  returnAnalysis = TRUE
+)
+out$sets
+out$plot
+```
+
+## Scatter plot
+
+A **scatter plot** 
+visualizes the comparison of the logFC for different differential effects.
+
+The documentation of the function containing description of each parameter 
+can be obtained by:
+
+```{r pcpHelp, eval=FALSE}
+help("daScatterPlot", "daVis")
+
+```
+
+### Highlight genes of interest and top genes
+
+The function **`daScatterPlot()`** creates a scatter plot for the provided 
+model or list of top tables. 
+The features of interest can be specified using `genesToHighlight` and 
+`genesToHighlightVar` parameters. Genes with highest logFC and significance
+can be colored as well by `topGenes`. These can be labeled 
+by `topGenesVar`.
+
+```{r pcp-genes-of-interest}
+coefs <- c("B.LvsP", "L.LvsP", "B.PvsV", "L.PvsV")
+genesOfInterest <- c("497097", "20671", "239273", "14862", "27395", "76408")
+
+daScatterPlot(
+  input = topTableList,
+  coef = coefs,
+  coefLabel = c("A", "B", "C", "D"),
+  genesToHighlight = genesOfInterest,
+  genesToHighlightVar = "SYMBOL",
+  topGenes = 5,
+  topGenesVar = "SYMBOL",
+  facetNCol = 3
+)
+
+```
+
+### Interactive plot with feature annotation
+
+The interactive scatter plot will be created by changing the `typePlot` 
+parameter. An additional feature annotation can be shown when hovering over 
+the points. The `featuresVar` parameter allows to specify the column names 
+that should be used to annotate the features. 
+
+```{r pcp-interactive-annotation, eval=FALSE}
+coefs <- c("B.LvsP", "L.LvsP", "B.PvsV", "L.PvsV")
+
+daScatterPlot(
+  input = topTableList,
+  coef = coefs,
+  coefLabel = c("A", "B", "C", "D"),
+  featuresIdVar = "ENTREZID",
+  featuresVar = c("SYMBOL", "GENENAME"),
+  facetNCol = 3,
+  typePlot = "interactive"
+)
+
+```
+
+### Add correlation
+
+The Pearson correlation value can be shown in the plot when setting 
+`correlation` parameter to TRUE.
+
+```{r pcp-correlation}
+coefs <- c("B.LvsP", "L.LvsP", "B.PvsV", "L.PvsV")
+
+daScatterPlot(
+  input = topTableList,
+  coef = coefs[c(1, 2)],
+  coefLabel = c("A", "B"),
+  featuresIdVar = "ENTREZID",
+  correlation = TRUE
+)
+
+```
+
+## Waterfall plot
+
+A **waterfall plot** 
+visualizes the logFC for different differential effects colored by adjusted 
+p-value.
+
+The documentation of the function containing description of each parameter 
+can be obtained by:
+
+```{r waterfallHelp, eval=FALSE}
+help("daWaterfallPlot", "daVis")
+
+```
+
+### Multiple coefficients
+
+The function **`daWaterfallPlot()`** creates a barplot plot for the provided 
+model or list of top tables. 
+When more than one coefficient specified, multiple plots side by side are 
+created. 
+
+```{r waterfall-more-coef}
+coefs <- c("B.LvsP", "L.LvsP", "B.PvsV", "L.PvsV")
+features <- daVis:::getTopFeatures(input = res.limma, coef = "B.LvsP", 
+	featuresIdVar = "ENTREZID", n = 20)
+
+daWaterfallPlot(
+  input = res.limma,
+  coef = coefs,
+  coefLabel = c("A", "B", "C", "D"),
+  featuresIdVar = "ENTREZID",
+  featuresVar = "SYMBOL",
+  features = features,
+  facetNCol = 4,
+  colorVar = "adj.P.Val",
+  color = c("maroon", "orange"),
+  fillVar = "adj.P.Val",
+  fill = c("maroon", "orange"),
+  typePlot = "static"
+)
+
+```
+
+## MA plot
+
+A **MA plot** 
+visualizes the logFC versus log2 mean expression.
+
+The documentation of the function containing description of each parameter 
+can be obtained by:
+
+```{r maplotHelp, eval=FALSE}
+help("daMAplot", "daVis")
+
+```
+
+### Label top genes and genes of interest
+
+The function **`daMAplot()`** creates a scatter plot (logFC versus mean 
+expression) for the provided model or list of top tables. 
+The top genes with highest absolute logFC and significance can be labeled. 
+The number of top genes can be specified using the `topGenes` parameter. 
+Top genes are labeled by feature names by default. It can be changed with 
+`topGenesVar`.
+The genes of interest are indicated in green. Additionally, if `coef` 
+indicates only one coefficient, the legend shows the number of significantly 
+up- or down-regulated genes, or the number of non-significant genes. The points
+can be colored by direction (significant up- and down-regulated genes) if 
+`direction` is set to TRUE. Customized colors can be used with `color`.
+
+```{r maplot-top-genes-and-genes-of-interest}
+coefs <- c("B.LvsP", "L.LvsP")
+
+daMAplot(
+  input = res.limma, 
+  coef = coefs[1], 
+  coefLabel = "A",
+  featuresIdVar = "ENTREZID",
+  topGenes = 5,
+  topGenesVar = "SYMBOL",
+  genesToHighlight = genesOfInterest,
+  genesToHighlightVar = "SYMBOL",
+  direction = TRUE,
+  color = c("steelblue", "firebrick", "grey")
+)
+
+```
+
+## Significant genes barplot
+
+A **barplot** 
+visualizes the number of significant genes per comparison.
+
+The documentation of the function containing description of each parameter 
+can be obtained by:
+
+```{r barplotHelp, eval=FALSE}
+help("daSignificantGenesBarplot", "daVis")
+
+```
+
+### Nested coefficient labels
+
+The function **`daSignificantGenesBarplot()`** creates a barplot indicating the
+number of significant (up- and down-regulated) genes for the provided model or 
+list of top tables. The coefficients can be grouped by specifying multiple sets 
+of labels to the `coefLabel` parameter.
+
+```{r barplot-nested-labels}
+coefs <- c("B.LvsP", "L.LvsP", "B.PvsV", "L.PvsV")
+
+coefsLabel <- list(
+  sub("(.+)\\.(.+)", "\\2", coefs),
+  sub("(.+)\\.(.+)", "\\1", coefs)
+)
+
+daSignificantGenesBarplot(
+  input = res.limma, 
+  coef = coefs, 
+  coefLabel = coefsLabel,
+  addPercentage = TRUE
+)
+
+```
+
+# Session information
+
+```{r sessionInfo}
+sessionInfo()
+```
