@@ -18,7 +18,9 @@ daLogRatioPlot(
   text = NULL,
   textCex = 4,
   xlab,
-  xexpand = if (!is.null(text)) {     ggplot2::expansion(mult = 0.2) },
+  xexpand = if (!is.null(text)) {
+     ggplot2::expansion(mult = 0.2)
+ },
   axesCex = 1,
   axesTitleCex = 1,
   title = NULL,
@@ -102,8 +104,8 @@ the x-axis is expanded by 20\% on each side.}
 standard error). If \code{input} (or each element within a 
 \code{input} list) is a:
 \itemize{
-\item{model: }{only supported for \code{MArrayLM}}
-\item{top table: }{a 'se' column should be available}
+\item{model: only supported for \code{MArrayLM}}
+\item{top table: a 'se' column should be available}
 }}
 
 \item{typePlot}{plot type, can be one of "static" or "interactive".}
@@ -118,17 +120,17 @@ This is a function to create barplot with log-foldchanges.
 
 The features are ordered based on:
 \itemize{
-\item{'similarity': }{a hierarchical clustering
+\item{'similarity': a hierarchical clustering
 of the (Euclidean) distances between the statistics. The statistics are for:
 \itemize{
-\item{limma: }{the t-statistic of each coefficient}
-\item{edgeR: }{the (overall) F-statistic is considered}
+\item{limma: the t-statistic of each coefficient}
+\item{edgeR: the (overall) F-statistic is considered}
 }}
-\item{'significance': }{decreasing average (-log10) p-values
+\item{'significance': decreasing average (-log10) p-values
 across coefficients. The p-values are for:
 \itemize{
-\item{limma: }{the significance of each coefficient}
-\item{edgeR: }{the (overall) p-value of the model}
+\item{limma: the significance of each coefficient}
+\item{edgeR: the (overall) p-value of the model}
 }}
 }
 }

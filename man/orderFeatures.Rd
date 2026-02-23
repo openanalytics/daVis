@@ -25,17 +25,17 @@ Order features based on similarity or significance
 
 The features are ordered based on:
 \itemize{
-\item{'similarity': }{a hierarchical clustering
+\item{'similarity': a hierarchical clustering
 of the (Euclidean) distances between the statistics. The statistics are for:
 \itemize{
-\item{limma: }{the t-statistic of each coefficient}
-\item{edgeR: }{the (overall) F-statistic is considered}
+\item{limma: the t-statistic of each coefficient}
+\item{edgeR: the (overall) F-statistic is considered}
 }}
-\item{'significance': }{decreasing average (-log10) p-values
+\item{'significance': decreasing average (-log10) p-values
 across coefficients. The p-values are for:
 \itemize{
-\item{limma: }{the significance of each coefficient}
-\item{edgeR: }{the (overall) p-value of the model}
+\item{limma: the significance of each coefficient}
+\item{edgeR: the (overall) p-value of the model}
 }}
 }
 }

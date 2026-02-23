@@ -19,6 +19,8 @@ createExampleData <- function(
 ) {
   
     output <- match.arg(output, several.ok = TRUE)
+    requireNamespace("tools")
+    path <- tools::file_path_as_absolute(path)
     
     downloadData(path = path, quiet = quiet)
     eset <- createExpressionSet(path = path)
@@ -48,8 +50,6 @@ createExampleData <- function(
 #' @importFrom utils download.file
 #' @return (invisibly) downloads files at specific location ('path')
 downloadData <- function(path, quiet) {
-  requireNamespace("tools")
-  path <- tools::file_path_as_absolute(path)
   countsURL <- paste0(
     "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE60nnn",
     "/GSE60450/suppl/GSE60450%5FLactation%2DGenewiseCounts%2Etxt%2Egz"

@@ -14,12 +14,12 @@ Common documentation for the \code{daVis} package.
 The top table extracted from a specified model, or specified by the user
 contains at least the columns:
 \itemize{
-\item{'logFC': }{log fold change}
-\item{'AveExpr': }{average expression}
-\item{'P.Value' and 'adj.PVal': }{raw and (multiplicity correction) adjusted 
+\item{'logFC': log fold change}
+\item{'AveExpr': average expression}
+\item{'P.Value' and 'adj.PVal': raw and (multiplicity correction) adjusted 
 p-values
 \itemize{
-\item{For \code{edgeR} model: }{this is extracted from the columns: 
+\item{For \code{edgeR} model: this is extracted from the columns: 
 'PValue' and 'FDR' respectively.}
 }}
 \item{feature identifier as specified by: \code{featuresIdVar}}

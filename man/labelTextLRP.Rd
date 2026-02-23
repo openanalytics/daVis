@@ -13,8 +13,8 @@ labelTextLRP(topTableOutput, errorBars, g, textVar, textVarCex)
 standard error). If \code{input} (or each element within a 
 \code{input} list) is a:
 \itemize{
-\item{model: }{only supported for \code{MArrayLM}}
-\item{top table: }{a 'se' column should be available}
+\item{model: only supported for \code{MArrayLM}}
+\item{top table: a 'se' column should be available}
 }}
 
 \item{g}{ggplot object with volcano plot}

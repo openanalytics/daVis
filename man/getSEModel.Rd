@@ -21,8 +21,8 @@ The standard errors are computed, according to BioC support
 as: \deqn{stdev.unscaled * \sqrt{s2.post}}
 with: 
 \itemize{
-\item{stdev.unscaled: }{unscaled standard deviations}
-\item{s2.post: }{posterior values for sigma^2}
+\item{stdev.unscaled: unscaled standard deviations}
+\item{s2.post: posterior values for sigma^2}
 }
 }
 \examples{

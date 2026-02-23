@@ -40,8 +40,8 @@
 #' standard error). If \code{input} (or each element within a 
 #' \code{input} list) is a:
 #' \itemize{
-#' \item{model: }{only supported for \code{MArrayLM}}
-#' \item{top table: }{a 'se' column should be available}
+#' \item{model: only supported for \code{MArrayLM}}
+#' \item{top table: a 'se' column should be available}
 #' }
 #' @param typePlot plot type, can be one of "static" or "interactive".
 #' @param textCex cex for the text next to bars
@@ -257,17 +257,17 @@ callLogRatioPlot <- function(
 #' @section Feature ordering:
 #' The features are ordered based on:
 #' \itemize{
-#' \item{'similarity': }{a hierarchical clustering
+#' \item{'similarity': a hierarchical clustering
 #' of the (Euclidean) distances between the statistics. The statistics are for:
 #' \itemize{
-#' \item{limma: }{the t-statistic of each coefficient}
-#' \item{edgeR: }{the (overall) F-statistic is considered}
+#' \item{limma: the t-statistic of each coefficient}
+#' \item{edgeR: the (overall) F-statistic is considered}
 #' }}
-#' \item{'significance': }{decreasing average (-log10) p-values
+#' \item{'significance': decreasing average (-log10) p-values
 #' across coefficients. The p-values are for:
 #' \itemize{
-#' \item{limma: }{the significance of each coefficient}
-#' \item{edgeR: }{the (overall) p-value of the model}
+#' \item{limma: the significance of each coefficient}
+#' \item{edgeR: the (overall) p-value of the model}
 #' }}
 #' }
 #' @return ordered features

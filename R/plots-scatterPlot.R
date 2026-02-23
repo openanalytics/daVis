@@ -409,7 +409,7 @@ mainSP <- function(
   names(color) <- levels(topTableOutput[, "signif"])
   range <- c(min(c(topTableOutput[, "x"], topTableOutput[, "y"])) - 0.2, 
              max(c(topTableOutput[, "x"], topTableOutput[, "y"])) + 0.2) 
-  dfLine <- data.frame(x = 3*range/4, y = 3*range/4)
+  dfLine <- data.frame(matrix(c(3*range/4, 3*range/4), nrow = 1))
   
   mainArgs <- c(
     list(x = 'x', y = 'y', color = 'signif')
@@ -425,12 +425,14 @@ mainSP <- function(
     geom_point(size = pointSize, alpha = alpha, show.legend = TRUE) +
     geom_vline(xintercept = 0, size = 0.2) +
     geom_hline(yintercept = 0, size = 0.2) +
-    geom_segment(aes(x = dfLine$x[1], 
-                     xend = dfLine$x[2], 
-                     y = dfLine$y[1], 
-                     yend = dfLine$y[2]), 
+    geom_segment(data = dfLine, 
+                 mapping = aes_string(x = "X1", 
+                                      xend = "X2", 
+                                      y = "X3", 
+                                      yend = "X4"), 
                  size = 0.2, 
-                 color = "grey") 
+                 color = "grey", 
+                 inherit.aes = FALSE) 
   g <- g + scale_colour_manual(values = color, drop = FALSE)
   g <- g + guides(colour = guide_legend(title = "Significance"))
   g

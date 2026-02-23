@@ -422,10 +422,10 @@ concatenateVars <- function(tbl, vars, nChar = NULL) {
 #' of to tables are provided or provided 'features' are not present in each top
 #' table). The table will be processed for each coefficient: 
 #' \itemize{
-#' \item{1}{missing features will be added (if a missing feature in coef X is
+#' \item{1: missing features will be added (if a missing feature in coef X is
 #' present in coef Y, this label will be used)}
-#' \item{2}{feature missing in all coefs will obviously not be plotted}
-#' \item{3}{the same 'featuresVar' can happen for different 'featuresIdVar' - 
+#' \item{2: feature missing in all coefs will obviously not be plotted}
+#' \item{3: the same 'featuresVar' can happen for different 'featuresIdVar' - 
 #' add index to duplicates as 'featuresVar' is used for plotting}
 #' }
 #' @inheritParams daLogRatioPlot

@@ -171,8 +171,8 @@ getTopTableFromModel <- function(input, coef, se = FALSE) {
 #' as: \deqn{stdev.unscaled * \sqrt{s2.post}}
 #' with: 
 #' \itemize{
-#' \item{stdev.unscaled: }{unscaled standard deviations}
-#' \item{s2.post: }{posterior values for sigma^2}
+#' \item{stdev.unscaled: unscaled standard deviations}
+#' \item{s2.post: posterior values for sigma^2}
 #' }
 #' @param input object of class \code{MArrayLM} (see \code{limma})
 #' @param coef character vector with one single coefficient
