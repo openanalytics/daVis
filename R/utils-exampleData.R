@@ -149,6 +149,7 @@ createExpressionSet <- function(path) {
 #' @param eset ExpressionSet
 #' @importFrom edgeR DGEList filterByExpr calcNormFactors estimateDisp
 #' @importFrom stats model.matrix
+#' @importFrom limma makeContrasts
 #' @return a list with data, model, design matrix and contrast matrix
 #' @author Katarzyna Gorczak
 modelExampleData <- function(eset) {
@@ -172,8 +173,7 @@ modelExampleData <- function(eset) {
                  L.PvsV = "L.pregnant-L.virgin",
                  LvsB = "(L.lactating-L.pregnant)-(B.lactating-B.pregnant)")
   contrastsOfInterest <- do.call(
-    getFromNamespace("makeContrasts", ns = "limma"), 
-    c(contrasts, list(levels = design))
+    makeContrasts, c(contrasts, list(levels = design))
   )
   
   list(
@@ -225,6 +225,7 @@ runLimma <- function(input) {
 
 #' Fit the model with DESeq2
 #' @param input list of objects (data, contrasts and model matrix)
+#' @importFrom DESeq2 DESeqDataSetFromMatrix DESeq results
 #' @return DESeq2 output from results() function
 #' @author Katarzyna Gorczak
 runDESeq2 <- function(input) {
@@ -234,15 +235,14 @@ runDESeq2 <- function(input) {
   contrast <- input$contrasts
   eset <- input$eset
   
-  requireNamespace("DESeq2", quietly = TRUE)
   requireNamespace("Biobase", quietly = TRUE)
-  dds <- DESeq2::DESeqDataSetFromMatrix(
+  dds <- DESeqDataSetFromMatrix(
     countData = y$counts, colData = Biobase::pData(eset), design = design
   )
-  dds <- suppressMessages(DESeq2::DESeq(dds))
+  dds <- suppressMessages(DESeq(dds))
   requireNamespace("S4Vectors", quietly = TRUE)
   S4Vectors::mcols(dds) <- cbind(S4Vectors::mcols(dds), y$genes)
-  res.deseq <- DESeq2::results(dds, contrast = contrast[, 1])
+  res.deseq <- results(dds, contrast = contrast[, 1])
   for (iCol in colnames(y$genes)) {
     res.deseq[[iCol]] <- y$genes[, iCol]
   }
@@ -275,7 +275,7 @@ runTopTable <- function(input) {
   res.limma <- eBayes(voom.fit)
   
   topTableList <- lapply(colnames(contrast[, seq_len(4)]), function(x){
-    topTable <- topTable(fit = res.limma, coef = x, n = Inf)
+    topTable <- topTable(fit = res.limma, coef = x, number = Inf)
     topTable[, "se"] <- getSEModel(input = res.limma, coef = x)
     return(topTable)
   })

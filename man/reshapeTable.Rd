@@ -4,34 +4,16 @@
 \alias{reshapeTable}
 \title{Reshape table}
 \usage{
-reshapeTable(
-  table,
-  column,
-  featuresIdVar,
-  featuresVar,
-  timevar,
-  direction = c("longToWide", "wideToLong", "longToList")
-)
+reshapeTable(table, timevar)
 }
 \arguments{
 \item{table}{long- or wide-format table}
 
-\item{column}{names of columns in the long-format table that correspond to 
-multiple columns in the wide-format table 
-(used only if \code{direction} is "longToWide")}
-
-\item{featuresIdVar}{column with feature identifier (must be unique)}
-
-\item{featuresVar}{column with feature annotation (used for labeling)}
-
 \item{timevar}{column name in long-format table that differentiates multiple
 records from the same group}
-
-\item{direction}{which data format to return 
-(can be one of "longToWide", "wideToLong", "longToList")}
 }
 \value{
-either long- or wide-format table, or a list of tables
+a list of tables
 }
 \description{
 Reshape table

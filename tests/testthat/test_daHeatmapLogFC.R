@@ -9,7 +9,7 @@ testthat::test_that("Heatmap correctly visualizes the logFC for a mixed input of
     input = inputMixed,
     coef = coefMixed,
     features = features
-  ) + ggplot2::geom_text(aes_string(label = "logFC"))
+  ) + geom_text(aes(label = .data[["logFC"]]))
   
   # extract data behind the tiles
   idxGeomTile <- which(vapply(gg$layers, function(x) inherits(x$geom, "GeomText"), logical(1)))
@@ -72,7 +72,7 @@ testthat::test_that("Heatmap correctly visualizes the logFC for a mixed input wi
       input = inputMixedRep,
       coef = coefMixed,
       features = features, 
-    ) + ggplot2::geom_text(aes_string(label = "logFC")),
+    ) + ggplot2::geom_text(aes(label = .data[["logFC"]])),
     "66292, 68585) are not present for the coefficient A"
   )
   

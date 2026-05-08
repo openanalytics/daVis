@@ -71,7 +71,6 @@
 #' @param ... Extra parameters passed to \code{geom_text_repel} to customize
 #' the position of the gene labels.
 #' @inheritParams createDataVolcanoPlot
-#' @import ggplot2
 #' @importFrom grDevices n2mfrow colorRampPalette pdf png
 #' @importFrom stats setNames
 #' @return ggplot object or list with ggplot object and top genes highlighted 
@@ -347,7 +346,6 @@ createDataVolcanoPlot <- function(
 #' @param includeTableGenesOfInterest whether to label \code{genesToHighlight}
 #' @param topTableOutputGenesOfInterest data.frame with \code{genesToHighlight}
 #' @param multiplePlot whether to use facet_wrap on coefficients
-#' @import ggplot2
 #' @return ggplot object
 #' @author Laure Cougnaud, Kirsten Van Hoorde, Katarzyna Gorczak
 callVolcanoPlot <- function(
@@ -404,7 +402,8 @@ callVolcanoPlot <- function(
 #' Create main plot object with volcano plot
 #' @inheritParams daVolcanoPlot
 #' @param topTableOutput combined topTables for all coefficients
-#' @import ggplot2
+#' @importFrom ggplot2 ggplot aes scale_y_continuous geom_point
+#' @importFrom rlang sym
 #' @return ggplot object
 #' @author Laure Cougnaud, Kirsten Van Hoorde, Katarzyna Gorczak
 mainVP <- function(
@@ -426,13 +425,13 @@ mainVP <- function(
     if(length(alphaVar) > 0)	  list(alpha = formatVariableSpace(alphaVar)),
     if(length(sizeVar) > 0)	    list(size = formatVariableSpace(sizeVar))
   )
-  aesString <- c(    
-    list(data = topTableOutput, 
-         mapping = do.call(ggplot2::aes_string, c(
-           mainArgs, if(typePlot == "interactive") list(text = "hoverText"))))
+  mainArgs <- c(
+    mainArgs, 
+    if(typePlot == "interactive") list(text = "hoverText")
   )
-  
-  g <- do.call(getFromNamespace("ggplot", ns = "ggplot2"), aesString)
+  mainArgs <- lapply(mainArgs, sym)
+  aesString <- list(data = topTableOutput, mapping = do.call(aes, mainArgs))
+  g <- do.call(ggplot, aesString)
   g <- g + scale_y_continuous(trans = transData)
   
   aesPointArgs <- c(
@@ -442,7 +441,7 @@ mainVP <- function(
     if(setFixElement(sizeVar, size))      list(size = size),
     list(show.legend = TRUE)
   )
-  g <- g + do.call(getFromNamespace("geom_point", ns = "ggplot2"), aesPointArgs)
+  g <- g + do.call(geom_point, aesPointArgs)
   
   g
 }
@@ -451,7 +450,9 @@ mainVP <- function(
 #' @inheritParams daVolcanoPlot
 #' @param topTableOutput combined topTables for all coefficients
 #' @param g ggplot object with volcano plot
-#' @import ggplot2
+#' @importFrom ggplot2 scale_alpha guide_legend scale_size guides guide_legend
+#' @importFrom ggplot2 scale_color_manual scale_shape_manual 
+#' @importFrom ggplot2 scale_alpha_manual scale_size_manual
 #' @return ggplot object
 #' @author Laure Cougnaud, Kirsten Van Hoorde, Katarzyna Gorczak
 formatAesVP <- function(
@@ -464,10 +465,9 @@ formatAesVP <- function(
   setManualScaleStatic <- function(typeVar, nameVar, valVar){
     values <- if(nameVar == "adj.P.ValFct") valVar else formatManualScale(
       x = topTableOutput, valVar, nameVar)
-    do.call(getFromNamespace(
-      paste("scale", typeVar, "manual", sep = "_"), ns = "ggplot2"),
-      c(list(values = values),
-        if(nameVar == "adj.P.ValFct") list(drop = FALSE)))
+    do.call(paste("scale", typeVar, "manual", sep = "_"),
+            c(list(values = values),
+              if(nameVar == "adj.P.ValFct") list(drop = FALSE)))
   }
   
   if (setManualScale(topTableOutput, colorVar, color)) 
@@ -486,16 +486,16 @@ formatAesVP <- function(
   if (length(alphaVar) > 0 && 
       class(topTableOutput[, alphaVar]) %in% c("numeric", "integer") & 
       length(alphaRange) > 0)
-    g <- g + ggplot2::scale_alpha(
+    g <- g + scale_alpha(
       range = alphaRange,
-      guide = ggplot2::guide_legend(override.aes = list(fill = "black"))
+      guide = guide_legend(override.aes = list(fill = "black"))
     )
   
   # custom size range, works only if size variable is numeric, or integer
   if(length(sizeVar) > 0 &&
      class(topTableOutput[, sizeVar]) %in% c("numeric", "integer") & 
      length(sizeRange) > 0)	
-    g <- g + ggplot2::scale_size(range = sizeRange)
+    g <- g + scale_size(range = sizeRange)
   
   if (length(colorVar) > 0 && colorVar == "adj.P.ValFct") 
     g <- g + guides(colour = guide_legend(title = "adjusted p-value"))

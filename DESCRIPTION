@@ -1,8 +1,8 @@
 Package: daVis
 Type: Package
 Title: Visualization Of Differential Expression Analysis
-Version: 0.99.1
-Date: 2026-02-19
+Version: 0.99.2
+Date: 2026-05-08
 Authors@R: c(
   person(given = "Katarzyna", family = "Gorczak", 
     role = c("aut", "cre"), 
@@ -23,11 +23,14 @@ Imports:
     limma,
     plyr,
     stats,
-    utils
+    utils,
+    DESeq2,
+    rlang,
+    legendry,
+    UpSetR
 Suggests:
     AnnotationDbi,
     Biobase,
-    DESeq2,
     ggrepel,
     ggtext,
     knitr,
@@ -39,8 +42,7 @@ Suggests:
     S4Vectors,
     scales,
     testthat,
-    tools,
-    UpSetR
+    tools
 URL: https://github.com/openanalytics/daVis
 BugReports: https://github.com/openanalytics/daVis/issues
 License: GPL-3
@@ -48,4 +50,4 @@ biocViews: Visualization, DataRepresentation, DifferentialExpression,
     Software, Microarray, RNASeq
 VignetteBuilder: knitr
 Encoding: UTF-8
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 8.0.0

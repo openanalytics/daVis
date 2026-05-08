@@ -27,8 +27,7 @@ arrangeTopTables <- function(
   
   output <- match.arg(output)
   
-  if (!inherits(input, "list")) input <- reshapeTable(
-    input, timevar = "coef", direction = "longToList")
+  if (!inherits(input, "list")) input <- reshapeTable(input, timevar = "coef")
   
   # subset logFC (logFCrange)
   if (!is.null(logFCrange)) input <- filterLogFC(input, logFCrange)
@@ -130,61 +129,13 @@ makeElementsUnique <- function(x){
 #' Reshape table
 #' 
 #' @param table long- or wide-format table
-#' @param column names of columns in the long-format table that correspond to 
-#' multiple columns in the wide-format table 
-#' (used only if \code{direction} is "longToWide")
-#' @param featuresIdVar column with feature identifier (must be unique)
-#' @param featuresVar column with feature annotation (used for labeling)
 #' @param timevar column name in long-format table that differentiates multiple
 #'  records from the same group
-#' @param direction which data format to return 
-#' (can be one of "longToWide", "wideToLong", "longToList")
-#' @return either long- or wide-format table, or a list of tables 
+#' @return a list of tables 
 #' @author Katarzyna Gorczak
-reshapeTable <- function(
-  table, column, featuresIdVar, featuresVar, timevar, 
-  direction = c("longToWide", "wideToLong", "longToList")
-) {
-  
-  direction <- match.arg(direction)
-  
-  switch(
-    direction,
-    "longToWide" = {
-      idvar <- c(featuresIdVar, featuresVar)
-      cols <- c(idvar, timevar, column)
-      tbl <- table[, cols]
-      tbl[, "label"] <- do.call(paste, c(tbl[, idvar, drop=FALSE], sep = " | "))
-      requireNamespace("stats")
-      tbl <- stats::reshape(data = tbl[, c("label", timevar, column)], 
-                            idvar = "label", 
-                            timevar = timevar, 
-                            v.names = column, 
-                            direction = "wide")
-      ids <- unlist(lapply(tbl[, "label"], function(x) 
-        unlist(strsplit(x, " | "))[1]))
-      tbl[, featuresIdVar] <- ids
-      tbl[, "label"] <- apply(tbl[, c("label", featuresIdVar)], 1, function(x)
-        gsub(paste0(x[2], " [|] "), "", x)[1])
-      tbl
-    },
-    
-    "wideToLong" = {
-      idvar <- attr(table, "reshapeWide")[["idvar"]]
-      if (any(duplicated(table[, idvar]))) {
-        table[, "uniqueLabel"] <- makeElementsUnique(table[, idvar])
-        attr(table, "reshapeWide")[["idvar"]] <- "uniqueLabel"
-      }
-      requireNamespace("stats")
-      tbl <- stats::reshape(table, direction = "long")
-      rownames(tbl) <- NULL
-      tbl
-    },
-    
-    "longToList" = {
-      x <- lapply(unique(table[, timevar]), function(x)
-        table[which(table[, timevar] == x), ])
-      names(x) <- unique(table[, timevar])
-      x
-    })
+reshapeTable <- function(table, timevar) {
+  x <- lapply(unique(table[, timevar]), function(x)
+    table[which(table[, timevar] == x), ])
+  names(x) <- unique(table[, timevar])
+  x
 }

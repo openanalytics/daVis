@@ -482,7 +482,8 @@ processFeatures <- function(tbl, coef, featuresIdVar, order) {
 #' @param topTableOutput combined topTables for all coefficients
 #' @param g ggplot object
 #' @param scales see \code{facet_wrap} or \code{facet_nested_wrap}
-#' @import ggplot2
+#' @importFrom ggplot2 facet_wrap
+#' @importFrom ggh4x facet_nested_wrap
 #' @return ggplot object
 #' @author Laure Cougnaud, Katarzyna Gorczak
 facet <- function(g, topTableOutput, facetNCol, scales = "fixed") {
@@ -495,9 +496,9 @@ facet <- function(g, topTableOutput, facetNCol, scales = "fixed") {
     facetNCol <- grDevices::n2mfrow(nrow(datFacet))[2]
   }
   fctFacet <- if(length(facetVars) > 1){
-    getFromNamespace("facet_nested_wrap", ns = "ggh4x")
+    facet_nested_wrap
   }else{
-    getFromNamespace("facet_wrap", ns = "ggplot2")
+    facet_wrap
   }
   g <- g + do.call(fctFacet, 
                    list(facets = fm, ncol = facetNCol, scales = scales))
@@ -515,7 +516,8 @@ facet <- function(g, topTableOutput, facetNCol, scales = "fixed") {
 #' @param g ggplot object
 #' @param ... Extra parameters passed to \code{geom_text_repel} to customize
 #' the position of the gene labels
-#' @import ggplot2
+#' @importFrom ggplot2 aes
+#' @importFrom rlang sym
 #' @return ggplot object
 #' @author Laure Cougnaud, Katarzyna Gorczak
 labelTopGenes <- function(
@@ -532,9 +534,10 @@ labelTopGenes <- function(
     list(label = 'topGenesVar'),
     if(length(colorVar) > 0)  list(color = formatVariableSpace(colorVar))
   )
+  mainArgsRepel <- lapply(mainArgsRepel, sym)
   aesStringRepel <- c(
     list(data = topTableOutputTopGenes, 
-         mapping = do.call(ggplot2::aes_string, mainArgsRepel),
+         mapping = do.call(aes, mainArgsRepel),
          size = topGenesCex,
          show.legend = FALSE),
     list(...)
@@ -551,7 +554,8 @@ labelTopGenes <- function(
 #' @inheritParams daVolcanoPlot
 #' @param topTableOutputGenesOfInterest data.frame with \code{genesToHighlight}
 #' @param g ggplot object
-#' @import ggplot2
+#' @importFrom ggplot2 geom_point aes
+#' @importFrom rlang .data
 #' @return ggplot object
 #' @author Laure Cougnaud, Katarzyna Gorczak
 labelGenesOfInterest <- function(
@@ -574,13 +578,13 @@ labelGenesOfInterest <- function(
     list(color = color, pch = 21, show.legend = FALSE)
   )
   
-  g <- g + do.call(getFromNamespace("geom_point", ns="ggplot2"), argsPointGoI)
+  g <- g + do.call(geom_point, argsPointGoI)
   
   if(typePlot == "static") {
     requireNamespace("ggrepel")
     g <- g +
       ggrepel::geom_text_repel(data = topTableOutputGenesOfInterest, 
-                               aes_string(label = 'genesToHighlightVar'),
+                               aes(label = .data[['genesToHighlightVar']]),
                                color = color,
                                size = genesToHighlightCex,
                                show.legend = FALSE, ...)

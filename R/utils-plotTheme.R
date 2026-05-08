@@ -24,66 +24,65 @@
 #' @param legendPosition legend position, by default right
 #' @param legendTitleSize cex for the legend title
 #' @param legendTextSize cex for the legend 
+#' @importFrom ggplot2 theme_bw theme element_rect element_blank element_text 
+#' @importFrom ggplot2 rel xlab ylab labs
 #' @return ggplot object with customized theme
 ggPlotTheme <- function(
-  ggObject,
-  panelBackground = NULL, panelBorder = "black",
-  title = NULL, titleSize = 2,
-  xTextSize = 1.2, xTextColor = "black", xTitle = NULL, 
-  xTitleSize = 1.4, xTextAngle = 0, xTextHjust = 0.5,
-  yTextSize = 1.2, yTextColor = "black", yTitle = NULL, yTitleSize = 1.4,
-  facetLabelSize = 1.5, facetLabelColor = "black",
-  gridMajor = TRUE, gridMinor = TRUE, yTicks = TRUE, xTicks = TRUE,
-  legendPosition = "right", legendTitleSize = 1.3, legendTextSize = 1.1
+    ggObject,
+    panelBackground = NULL, panelBorder = "black",
+    title = NULL, titleSize = 2,
+    xTextSize = 1.2, xTextColor = "black", xTitle = NULL, 
+    xTitleSize = 1.4, xTextAngle = 0, xTextHjust = 0.5,
+    yTextSize = 1.2, yTextColor = "black", yTitle = NULL, yTitleSize = 1.4,
+    facetLabelSize = 1.5, facetLabelColor = "black",
+    gridMajor = TRUE, gridMinor = TRUE, yTicks = TRUE, xTicks = TRUE,
+    legendPosition = "right", legendTitleSize = 1.3, legendTextSize = 1.1
 ) {
   
-  t <- ggplot2::theme_bw()
+  t <- theme_bw()
   if (length(xTextSize) == 2) xTextSize <- xTextSize[1]
   if (length(yTextSize) == 2) yTextSize <- yTextSize[2]
   
   if (!is.null(panelBackground)) {
-    t <- t + ggplot2::theme(panel.background = ggplot2::element_rect(
+    t <- t + theme(panel.background = element_rect(
       fill = panelBackground, colour = NA))
-  } else t <- t + ggplot2::theme(panel.background = ggplot2::element_blank())
-
-  t <- t + ggplot2::theme(
-    panel.border = ggplot2::element_rect(
+  } else t <- t + theme(panel.background = element_blank())
+  
+  t <- t + theme(
+    panel.border = element_rect(
       linetype = "solid", fill = NA, color = panelBorder),
-    legend.title = ggplot2::element_text(size = ggplot2::rel(legendTitleSize)), 
-    legend.text = ggplot2::element_text(size = ggplot2::rel(legendTextSize)), 
+    legend.title = element_text(size = rel(legendTitleSize)), 
+    legend.text = element_text(size = rel(legendTextSize)), 
     legend.position = legendPosition,
     axis.text.y = ggtext::element_markdown(
-      hjust = 0, color = yTextColor, size = ggplot2::rel(yTextSize)),
+      hjust = 0, color = yTextColor, size = rel(yTextSize)),
     axis.text.x = ggtext::element_markdown(
       hjust = xTextHjust, angle = xTextAngle, color = xTextColor, 
-      size = ggplot2::rel(xTextSize)),
-    strip.text = ggplot2::element_text(
-      size = ggplot2::rel(facetLabelSize), color = facetLabelColor)
+      size = rel(xTextSize)),
+    strip.text = element_text(
+      size = rel(facetLabelSize), color = facetLabelColor)
   )
-  if (!xTicks) t <- t + ggplot2::theme(axis.ticks.x = ggplot2::element_blank())
-  if (!yTicks) t <- t + ggplot2::theme(axis.ticks.y = ggplot2::element_blank())
-  if (!gridMajor) t <- t + ggplot2::theme(
-    panel.grid.major = ggplot2::element_blank())
-  if (!gridMinor) t <- t + ggplot2::theme(
-    panel.grid.minor = ggplot2::element_blank())
+  if (!xTicks) t <- t + theme(axis.ticks.x = element_blank())
+  if (!yTicks) t <- t + theme(axis.ticks.y = element_blank())
+  if (!gridMajor) t <- t + theme(panel.grid.major = element_blank())
+  if (!gridMinor) t <- t + theme(panel.grid.minor = element_blank())
   
   if (!is.null(xTitle)) {
-    ggObject <- ggObject + ggplot2::xlab(xTitle)
-    t <- t + ggplot2::theme(axis.title.x = ggplot2::element_text(
-      size = ggplot2::rel(xTitleSize), vjust = -0.5))
-  } else t <- t + ggplot2::theme(axis.title.x = ggplot2::element_blank())
+    ggObject <- ggObject + xlab(xTitle)
+    t <- t + theme(axis.title.x = element_text(
+      size = rel(xTitleSize), vjust = -0.5))
+  } else t <- t + theme(axis.title.x = element_blank())
   
   if (!is.null(yTitle)) {
-    ggObject <- ggObject + ggplot2::ylab(yTitle)
-    t <- t + ggplot2::theme(axis.title.y = ggplot2::element_text(
-      size = ggplot2::rel(yTitleSize), vjust = 2))
-  } else t <- t + ggplot2::theme(axis.title.y = ggplot2::element_blank())
+    ggObject <- ggObject + ylab(yTitle)
+    t <- t + theme(axis.title.y = element_text(
+      size = rel(yTitleSize), vjust = 2))
+  } else t <- t + theme(axis.title.y = element_blank())
   
   if (!is.null(title)) {
-    ggObject <- ggObject + ggplot2::labs(title = title)
+    ggObject <- ggObject + labs(title = title)
     t <- t +
-      ggplot2::theme(plot.title = ggplot2::element_text(
-        size = ggplot2::rel(titleSize)))
+      theme(plot.title = element_text(size = rel(titleSize)))
   }
   
   ggObject + t

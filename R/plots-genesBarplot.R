@@ -23,7 +23,6 @@
 #' (indicating number of genes).
 #' @param addPercentage logical whether to add percentage 
 #' @inheritParams extractTopTables
-#' @import ggplot2
 #' @examples 
 #' exampleData <- createExampleData(path = ".", output = "limma")
 #' model <- exampleData$limma
@@ -146,43 +145,44 @@ createDataBarplot <- function(
 #' @return ggplot object
 #' @author Katarzyna Gorczak
 #' @importFrom utils getFromNamespace
-#' @importFrom ggh4x guide_axis_nested
-#' @import ggplot2
+#' @importFrom legendry guide_axis_nested
+#' @importFrom rlang sym expr syms
+#' @importFrom ggplot2 ggplot aes geom_bar geom_text position_stack expansion
+#' @importFrom ggplot2 scale_fill_manual scale_x_discrete scale_y_continuous 
 callBarplot <- function(
     tbl, color, annotCex, addPercentage, title, titleCex, xlab, ylab, 
     axesTitleCex, axesCex, legendPosition, legendTitleCex, legendCex
 ) {
   
   labelVars <- grep("^comparison([[:digit:]]{1,})?$", colnames(tbl), value=TRUE)
-  mainArgs <- c(
-    list(x = paste0('interaction(', 
-                    paste0(labelVars, collapse = ', ' ),', sep = "!")'), 
-         y = 'value', label = 'valueLabel', fill = 'direction')
-  )
-  aesString <- c(    
-    list(data = tbl, mapping = do.call(ggplot2::aes_string, mainArgs))
-  )
-  g <- do.call(getFromNamespace("ggplot", ns = "ggplot2"), aesString)
+  xVar <- expr(interaction(!!!syms(labelVars), sep = "!"))
+  mainArgs <- list(y = 'value', label = 'valueLabel', fill = 'direction')
+  mainArgs <- lapply(mainArgs, sym)
+  mainArgs$x <- xVar
+  
+  aesString <- list(data = tbl, mapping = aes(!!!mainArgs))
+  g <- do.call(ggplot, aesString)
   
   tblTextTotal <- tbl[!duplicated(
     tbl[, c("total", "totalLabel", "coef", 
             grep("^comparison([[:digit:]]{1,})?$", colnames(tbl), value = TRUE)
-  ), ]), ]
+    ), ]), ]
   
   g <- g + 
-    geom_bar(stat="identity") +
-    geom_text(size = annotCex, position = position_stack(vjust = 0.5)) + 
-    scale_fill_manual(values = color) + 
-    geom_text(
-      data = tblTextTotal,
-      aes_string(x = paste0('interaction(', 
-                            paste0(labelVars, collapse = ', ' ),', sep = "!")'),
-                 y = "total",
-                 label = "paste0('total: ', totalLabel)"),
-      vjust = -0.2,
-      size = annotCex) +
-    scale_x_discrete(guide = ggh4x::guide_axis_nested(delim = "!")) +
-    scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
+    geom_bar(stat = "identity") +
+    geom_text(size = 4, position = position_stack(vjust = 0.5)) + 
+    scale_fill_manual(values = c("firebrick", "dodgerblue4"))
+  
+  totalVar <- expr(paste0('total: ', !!sym("totalLabel")))
+  textAesArgs <- list(x = xVar, y = sym("total"), label = totalVar)
+  textArgs <- list(
+    data = tblTextTotal, mapping = aes(!!!textAesArgs), vjust = -0.2, size = 4
+  )
+  g <- g + do.call(geom_text, textArgs)
+  g <- g + scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
+  
+  if (length(labelVars) > 1)
+    g <- g + scale_x_discrete(guide = guide_axis_nested(drop_zero = FALSE))
   
   g <- ggPlotTheme(
     ggObject = g, title = title, titleSize = titleCex, panelBackground = NULL,

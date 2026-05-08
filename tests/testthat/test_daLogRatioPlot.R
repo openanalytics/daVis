@@ -399,7 +399,7 @@ testthat::test_that("A significance star is correctly displayed in a log ratio p
   ggDataStar[, "featureID"] <- yAxisLabel 
   ggDataStar <- ggDataStar[match(features, ggDataStar$featureID), ]
   
-  topTable <- limma::topTable(fit = res.limma, coef = "L.LvsP", n = Inf)
+  topTable <- limma::topTable(fit = res.limma, coef = "L.LvsP", number = Inf)
   topTable <- topTable[match(features, rownames(topTable)), ]
   topTable[, "star"] <- getSignifStar(topTable = topTable)
   
@@ -436,7 +436,7 @@ testthat::test_that("The features are ordered by similarity if a text variable i
   yAxisLabel <- ggplot2::layer_scales(gg, idxGeomBar)$x$range$range
   
   tStat <- sapply(coefs, function(coef){
-    limma::topTable(fit = res.limma, n = Inf, coef = coef)[features, "t"]
+    limma::topTable(fit = res.limma, number = Inf, coef = coef)[features, "t"]
   })
   featuresOrdered <- features[stats::hclust(stats::dist(tStat))$order]
   

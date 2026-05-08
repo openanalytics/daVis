@@ -20,6 +20,7 @@
 #' output of the analysis (list with all overlapping sets based on 
 #' \code{featuresIdVar}), otherwise only the plot object
 #' @inheritParams createDataUpsetPlot
+#' @importFrom UpSetR upset
 #' @return uspet plot; if \code{returnAnalysis} is TRUE, return a list with 
 #' overlapping sets and plot
 #' @examples 
@@ -51,7 +52,7 @@ daUpset <- function(
   
   dir <- match.arg(dir)
   nCoefs <- length(coef)
-  if (nCoefs < 2) stop("At least 2 'coef' must be provided.")
+  if (nCoefs < 2) stop("At least 2 'coef' must be provided.", call. = FALSE)
   
   # Create data for visualization
   dataFrameSG <- createDataUpsetPlot(
@@ -76,8 +77,7 @@ daUpset <- function(
   namesSize <- ifelse(
     nBars < 5, 2, ifelse(nBars < 10, 1.75, ifelse(nBars < 20, 1.5, 1)))
   
-  requireNamespace("UpSetR")
-  plot <- UpSetR::upset(
+  plot <- upset(
     dataFrameSG,  
     nsets = ncol(dataFrameSG),
     nintersects = NA,
@@ -145,7 +145,8 @@ createDataUpsetPlot <- function(
   
   if(!sum(vapply(tbl, nrow, numeric(1))) > 0)
     stop("No features are ", 
-         switch(dir, "up" = "up-regulated", "down" = "down-regulated"), ".")
+         switch(dir, "up" = "up-regulated", "down" = "down-regulated"), ".",
+         call. = FALSE)
   
   coefLabels <- unname(vapply(tbl, function(x) 
     unique(as.character(x[, "comparison"])), character(1)))
@@ -155,12 +156,13 @@ createDataUpsetPlot <- function(
   if(sum(vapply(tbl, length, numeric(1)) != 0) == 1){
     idx <- which(vapply(tbl, length, numeric(1)) != 0)
     stop("There are up-regulated significant features only for one",
-		" coefficient: ", names(tbl)[idx], ". The plot is not generated.")
+		" coefficient: ", names(tbl)[idx], ". The plot is not generated.",
+		call. = FALSE)
   }
   
   elements <- unique(unlist(tbl))
   dt <- unlist(lapply(tbl, function(x) {
-    x <- as.vector(match(elements, x))
+    as.vector(match(elements, x))
   }))
   dt[is.na(dt)] <- as.integer(0)
   dt[dt != 0] <- as.integer(1)
@@ -180,6 +182,7 @@ createDataUpsetPlot <- function(
 #' @param dataFrameSG data.frame compatible with UpSetR
 #' @importFrom grDevices colorRampPalette
 #' @importFrom utils combn
+#' @importFrom UpSetR intersects
 #' @return a list with queries for upset plot
 extractQueryList <- function(dataFrameSG) {
   
@@ -192,8 +195,7 @@ extractQueryList <- function(dataFrameSG) {
     
     apply(sets, 2, function(s){
       if(any(rowSums(dataFrameOI[, s]) == n)){
-        requireNamespace("UpSetR")
-        list(query = UpSetR::intersects,
+        list(query = intersects,
              params = as.list(s),
              color = cols[n],
              active = TRUE)

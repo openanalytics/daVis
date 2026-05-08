@@ -1,3 +1,24 @@
+CHANGES IN VERSION 0.99.2
+-------------------------
+
+Changes:
+
+  * Replaced deprecated functions:
+    - aes_string -> aes ('ggplot2') with 'rlang' syntax
+    - guide_axis_nested (function moved from 'ggh4x' to 'legendry')
+  * Used importFrom instead Import for 'ggplot2'
+  * Moved from Suggests to Imports: 'DESeq2', 'UpSetR'
+  * Replaced requireNamespace(pkg) with importFrom: 'DESeq2', 'edgeR', 'limma'
+  
+Other:
+
+  * Added tests for:
+    - checkInputColumns
+    - daUpset 
+    - getFeatures
+    - topTable-arrange
+
+-------------------------
 CHANGES IN VERSION 0.99.0
 -------------------------
 

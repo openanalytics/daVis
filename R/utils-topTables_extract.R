@@ -85,6 +85,9 @@ extractTopTables <- function(
 #' @author Katarzyna Gorczak
 addHoverText <- function(input, columns) {
   
+  if (any(!columns %in% colnames(input)))
+    stop("All 'columns' must be present in 'input'.")
+  
   df <- input
   df[, "hoverText"] <- paste0(
     "logFC: ", round(df[, "logFC"], digits = 4), "<br>",
@@ -109,6 +112,8 @@ addHoverText <- function(input, columns) {
 #' @inheritParams isModel
 #' @param coef coefficient of interest
 #' @param se Logical (FALSE by default), should standard errors be extracted?
+#' @importFrom limma topTable
+#' @importFrom edgeR topTags
 #' @return data.frame with top tables for coefficient of interest.\cr
 #' The features are ordered in original (unsorted) order in the model.\cr
 #' Standard errors, if requested are in the column: 'SE'.
@@ -120,13 +125,11 @@ getTopTableFromModel <- function(input, coef, se = FALSE) {
   topTable <- switch(
     method, 
     'limma' = {
-      requireNamespace("limma")
-      limma::topTable(input, coef = coef, n = Inf, sort.by = "none")
+      topTable(input, coef = coef, number = Inf, sort.by = "none")
     },
     
     'edgeR' = {
-      requireNamespace("edgeR")
-      tbl <- edgeR::topTags(input, n = Inf, sort.by = "none")
+      tbl <- topTags(input, n = Inf, sort.by = "none")
       tbl <- tbl[["table"]]
       logFCcolumns <- grep("logFC", colnames(tbl))
       logFCcolumnCoef <- grep(paste0("[.]", coef, collapse="|"), colnames(tbl))
@@ -155,8 +158,9 @@ getTopTableFromModel <- function(input, coef, se = FALSE) {
   
   if(se){
     if("se" %in% colnames(topTable)){
-      stop("Standard errors ('se' column) are already available in the",
-		" top table.")
+      tmp <- paste0("Standard errors ('se' column) are already available in ",
+                    "the top table.")
+      stop(tmp)
     }
     topTable[, "se"] <- getSEModel(input = input, coef = coef)
   }
@@ -192,7 +196,8 @@ getSEModel <- function(input, coef){
   if(inherits(input, "MArrayLM")){
     se <- c(input$stdev.unscaled[, coef] * sqrt(input$s2.post))
   }else{
-    warning("Error bars not implemented for: ", class(input), ".")
+    tmp <- paste0("Error bars not implemented for: ", class(input), ".")
+    warning(tmp)
     se <- NA_real_
   }
   
@@ -273,9 +278,10 @@ extractColsOfInterest <- function(
     if("se" %in% colnames(topTableCoef)){
       columns <- unique(c(columns, "se"))
     }else{
-      warning("Standard errors ('se') are not available in the ",
-              "top table of coefficient: ", coefI, ", so", 
-              " error bars are not included for this coefficient.")
+      tmp <- paste0("Standard errors ('se') are not available in the ",
+                    "top table of coefficient: ", coefI, ", so", 
+                    " error bars are not included for this coefficient.")
+      warning(tmp)
     }
   }
   
@@ -306,7 +312,10 @@ formatTTcoef <- function(
   df <- data.frame(
     topTableCoef[, columns, drop = FALSE], stringsAsFactors = FALSE)
   
-  if (mean)  colnames(df)[grep(colMeanExpr, colnames(df))] <- "mean"
+  if (mean) {
+    colnames(df)[grep(colMeanExpr, colnames(df))] <- "mean"
+    columns[grep(colMeanExpr, columns)] <- "mean"
+  }
   
   # and coefficient
   df[, "coef"] <- factor(coefI, levels = coef)

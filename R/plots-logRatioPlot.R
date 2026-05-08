@@ -196,7 +196,7 @@ createDataLogRatioPlot <- function(
 #' @param multiplePlot whether to use facet_wrap on coefficients
 #' @return ggplot object
 #' @author Laure Cougnaud, Kirsten Van Hoorde, Katarzyna Gorczak
-#' @import ggplot2
+#' @importFrom ggplot2 ylab scale_y_continuous
 #' @importFrom utils getFromNamespace
 #' @importFrom ggh4x facet_nested_wrap
 callLogRatioPlot <- function(
@@ -313,7 +313,9 @@ orderFeatures <- function(input, featuresOrder, featuresIdVar) {
 #' Create main plot object with log-ratio plot
 #' @inheritParams daLogRatioPlot
 #' @param topTableOutput combined topTables for all coefficients
-#' @import ggplot2
+#' @importFrom ggplot2 ggplot aes geom_bar coord_flip scale_fill_manual 
+#' @importFrom ggplot2 geom_hline geom_errorbar
+#' @importFrom rlang sym expr syms
 #' @return ggplot object
 #' @author Laure Cougnaud, Kirsten Van Hoorde, Katarzyna Gorczak
 mainLRP <- function(typePlot, color, topTableOutput, errorBars) {
@@ -326,15 +328,12 @@ mainLRP <- function(typePlot, color, topTableOutput, errorBars) {
             "coefficients and not the coefficient labels.")
     fillVar <- "comparison"
   }
-  mainArgs <- c(
-    list(x = 'featuresVar', y = 'logFC', fill = fillVar)
-  )
-  aesString <- c(    
-    list(data = topTableOutput, 
-         mapping = do.call(ggplot2::aes_string, c(
-           mainArgs, if(addHoverText) list(text = "hoverText"))))
-  )
-  g <- do.call(getFromNamespace("ggplot", ns = "ggplot2"), aesString)
+  mainArgs <- list(x = 'featuresVar', y = 'logFC', fill = fillVar)
+  mainArgs <- c(mainArgs, if(addHoverText) list(text = "hoverText"))
+  mainArgs <- lapply(mainArgs, sym)
+  
+  aesString <- list(data = topTableOutput, mapping = do.call(aes, mainArgs))
+  g <- do.call(ggplot, aesString)
   
   ymax <- ifelse(
     errorBars, 
@@ -351,7 +350,7 @@ mainLRP <- function(typePlot, color, topTableOutput, errorBars) {
     list(stat = "identity", position = "identity", 
          show.legend = FALSE, na.rm = TRUE)
   )
-  g <- g + do.call(getFromNamespace("geom_bar", ns = "ggplot2"), aesBarArgs)
+  g <- g + do.call(geom_bar, aesBarArgs)
   g <- g +
     coord_flip(ylim = c(ymin, ymax)) +
     scale_fill_manual(values = color) +
@@ -359,7 +358,7 @@ mainLRP <- function(typePlot, color, topTableOutput, errorBars) {
   
   if (errorBars)
     g <- g + geom_errorbar(data = topTableOutput, 
-                           aes_string(ymin = 'ymin', ymax = 'ymax'),
+                           aes(ymin = !!sym('ymin'), ymax = !!sym('ymax')),
                            color = "black")
   
   g
@@ -371,7 +370,8 @@ mainLRP <- function(typePlot, color, topTableOutput, errorBars) {
 #' @param g ggplot object with volcano plot
 #' @param textVar (optional) String with name of a column to display as text.
 #' @param textVarCex cex for the text next to bars
-#' @import ggplot2
+#' @importFrom ggplot2 geom_text aes
+#' @importFrom rlang sym
 #' @return ggplot object
 #' @author Laure Cougnaud, Kirsten Van Hoorde, Katarzyna Gorczak
 labelTextLRP <- function(topTableOutput, errorBars, g, textVar, textVarCex) {
@@ -390,9 +390,11 @@ labelTextLRP <- function(topTableOutput, errorBars, g, textVar, textVarCex) {
   # x-adjustment
   topTableOutput[, "textXJust"] <- ifelse(
     topTableOutput[, "logFC"] < 0, 1.1, -0.1)
-  g <- g + ggplot2::geom_text(
+  textArgs <- list(label = textVar, y = "textX", hjust = "textXJust")
+  textArgs <- lapply(textArgs, sym)
+  g <- g + geom_text(
     data = topTableOutput,
-    mapping = aes_string(label = textVar, y = "textX", hjust = "textXJust"),
+    mapping = aes(!!!textArgs),
     cex = textVarCex
   )
   

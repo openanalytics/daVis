@@ -170,7 +170,6 @@ createDataHeatmap <- function(
 #' 
 #' @inheritParams daHeatmapLogFC
 #' @param topTableOutput combined topTables for all coefficients
-#' @import ggplot2
 #' @return ggplot object
 #' @author Katarzyna Gorczak
 callHeatmap <- function(
@@ -212,7 +211,10 @@ callHeatmap <- function(
 #' Create main plot object with heatmap
 #' @inheritParams daHeatmapLogFC
 #' @param topTableOutput combined topTables for all coefficients
-#' @import ggplot2
+#' @importFrom ggplot2 ggplot aes geom_tile scale_fill_gradient2 
+#' @importFrom ggplot2 scale_x_discrete guides
+#' @importFrom legendry guide_axis_nested
+#' @importFrom rlang sym expr syms
 #' @return ggplot object
 #' @author Katarzyna Gorczak
 mainH <- function(typePlot, topTableOutput, color, colorNA) {
@@ -230,26 +232,26 @@ mainH <- function(typePlot, topTableOutput, color, colorNA) {
   
   facetVars <- grep("^comparison([[:digit:]]{1,})?$", 
                     colnames(topTableOutput), value = TRUE)
+  xVar <- expr(interaction(!!!syms(facetVars), sep = "!"))
   mainArgs <- c(
-    list(x = paste0('interaction(', 
-                    paste0(facetVars, collapse = ', ' ),', sep = "!")'),
-         y = 'featuresVar', fill = 'logFC')
+    list(y = 'featuresVar', fill = 'logFC'),
+    if(addHoverText) list(text = "hoverText")
   )
-  aesString <- c(    
-    list(data = topTableOutput, 
-         mapping = do.call(ggplot2::aes_string, c(
-           mainArgs, if(addHoverText) list(text = "hoverText"))))
-  )
-  g <- do.call(getFromNamespace("ggplot", ns = "ggplot2"), aesString)
+  mainArgs <- lapply(mainArgs, sym)
+  mainArgs$x <- xVar
   
+  aesString <- list(data = topTableOutput, mapping = aes(!!!mainArgs))
+  g <- do.call(ggplot, aesString)
+
   g <- g + 
     geom_tile() +
     scale_fill_gradient2(
       low = low, mid = mid, high = high, 
       midpoint = 0, na.value = colorNA,
       limits = logfcRange, breaks = seq(
-        round(-val, 0), round(val, 0), by = ceiling(sumAbs/6))) +
-    scale_x_discrete(guide = ggh4x::guide_axis_nested(delim = "!"))
+        round(-val, 0), round(val, 0), by = ceiling(sumAbs/6)))
+  if (length(facetVars) > 1)
+    g <- g + guides(x = guide_axis_nested(drop_zero = FALSE))
   
   g
 }

@@ -107,21 +107,21 @@ getTopFeatures <- function(input, coef, featuresIdVar = character(), n = 10) {
 
 #' Extract top features from \code{limma} output
 #' @inheritParams getTopFeatures
+#' @importFrom limma topTable
 #' @return character vector with feature names
 #' @author Katarzyna Gorczak
 topFeaturesLimma <- function(input, coef, n, featuresIdVar) {
-  requireNamespace("limma")
-  tbl <- limma::topTable(input, coef = coef, n = n)
+  tbl <- topTable(input, coef = coef, number = n)
   if (length(featuresIdVar) > 0) tbl[, featuresIdVar] else rownames(tbl)
 }
 
 #' Extract top features from \code{edgeR} output
 #' @inheritParams getTopFeatures
+#' @importFrom edgeR topTags
 #' @return character vector with feature names
 #' @author Katarzyna Gorczak
 topFeaturesEdger <- function(input, n, featuresIdVar) {
-  requireNamespace("edgeR")
-  tbl <- edgeR::topTags(input, n = n)
+  tbl <- topTags(input, n = n)
   tbl <- tbl[["table"]]
   if (length(featuresIdVar) > 0) tbl[, featuresIdVar] else rownames(tbl)
 }

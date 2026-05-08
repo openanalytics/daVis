@@ -57,7 +57,6 @@
 #' @param ... Extra parameters passed to \code{geom_text_repel} to customize
 #' the position of the gene labels.
 #' @inheritParams createDataScatterPlot
-#' @import ggplot2
 #' @return ggplot object or a list with ggplot object and top genes 
 #' highlighted in the scatter plot 
 #' (top 10 genes with highest significance and/or highest logFC)
@@ -340,7 +339,7 @@ createPairData <- function(tbl, featuresIdVar, fdr, typePlot, columns) {
 #' @param includeTableGenesOfInterest whether to label \code{genesToHighlight}
 #' @param topTableOutputGenesOfInterest data.frame with \code{genesToHighlight}
 #' @param multiplePlot logical whether to use facet on coefficients
-#' @import ggplot2
+#' @importFrom ggplot2 facet_wrap
 #' @return ggplot object
 #' @author Katarzyna Gorczak
 callScatterPlot <- function(
@@ -367,7 +366,7 @@ callScatterPlot <- function(
       topTableOutputTopGenes = topTableOutputTopGenes, colorVar = "signif", 
       topTableOutputGenesOfInterest = topTableOutputGenesOfInterest, 
       topGenesCex = topGenesCex, ...) 
-  
+   
   if(multiplePlot)	
     g <- g + facet_wrap(
       facets = stats::as.formula(paste("~", "comparison")),
@@ -398,7 +397,9 @@ callScatterPlot <- function(
 #' @inheritParams daScatterPlot
 #' @param topTableOutput combined topTables for all coefficients
 #' @param multiplePlot logical whether to use facet on coefficients
-#' @import ggplot2
+#' @importFrom ggplot2 ggplot aes geom_point geom_vline geom_hline 
+#' @importFrom ggplot2 geom_segment scale_colour_manual guides guide_legend
+#' @importFrom rlang sym .data
 #' @return ggplot object
 #' @author Katarzyna Gorczak
 mainSP <- function(
@@ -411,26 +412,23 @@ mainSP <- function(
              max(c(topTableOutput[, "x"], topTableOutput[, "y"])) + 0.2) 
   dfLine <- data.frame(matrix(c(3*range/4, 3*range/4), nrow = 1))
   
-  mainArgs <- c(
-    list(x = 'x', y = 'y', color = 'signif')
-  )
-  aesString <- c(    
-    list(data = topTableOutput,
-         mapping = do.call(ggplot2::aes_string, c(
-           mainArgs, if(addHoverText) list(text = "hoverText"))))
-  )
+  mainArgs <- list(x = 'x', y = 'y', color = 'signif')
+  mainArgs <- c(mainArgs, if(addHoverText) list(text = "hoverText"))
+  mainArgs <- lapply(mainArgs, sym)
   
-  g <- do.call(getFromNamespace("ggplot", ns = "ggplot2"), aesString)
+  aesString <- list(data = topTableOutput, mapping = do.call(aes, mainArgs))
+  g <- do.call(ggplot, aesString)
+  
   g <- g + 
     geom_point(size = pointSize, alpha = alpha, show.legend = TRUE) +
-    geom_vline(xintercept = 0, size = 0.2) +
-    geom_hline(yintercept = 0, size = 0.2) +
+    geom_vline(xintercept = 0, linewidth = 0.2) +
+    geom_hline(yintercept = 0, linewidth = 0.2) +
     geom_segment(data = dfLine, 
-                 mapping = aes_string(x = "X1", 
-                                      xend = "X2", 
-                                      y = "X3", 
-                                      yend = "X4"), 
-                 size = 0.2, 
+                 mapping = aes(x = .data[["X1"]], 
+                               xend = .data[["X2"]], 
+                               y = .data[["X3"]], 
+                               yend = .data[["X4"]]), 
+                 linewidth = 0.2, 
                  color = "grey", 
                  inherit.aes = FALSE) 
   g <- g + scale_colour_manual(values = color, drop = FALSE)
@@ -442,16 +440,18 @@ mainSP <- function(
 #' @inheritParams daScatterPlot
 #' @param topTableOutput combined topTables for all coefficients
 #' @param g ggplot object
-#' @import ggplot2
+#' @importFrom ggplot2 aes
+#' @importFrom rlang .data
 #' @return ggplot object
 #' @author Katarzyna Gorczak
 labelCorr <- function(topTableOutput, g, correlationCex) {
   corr <- calcCorrelation(input = topTableOutput)
+  requireNamespace("ggrepel")
   g <- g +
     ggrepel::geom_text_repel(data = corr,
-                             aes_string(x = "-Inf", 
-                                        y = "Inf",
-                                        label = "V1"), 
+                             aes(x = -Inf, 
+                                 y = Inf,
+                                 label = .data[["V1"]]), 
                              size = correlationCex,
                              show.legend = FALSE,
                              inherit.aes = FALSE)
@@ -467,7 +467,6 @@ labelCorr <- function(topTableOutput, g, correlationCex) {
 #' @param multiplePlot whether to facet on coefs to compare
 #' @param compCoef coefficients to compare with \code{refCoef}
 #' @inheritParams createPairData
-#' @import ggplot2
 #' @return ggplot object
 #' @author Katarzyna Gorczak
 extractPairs <- function(

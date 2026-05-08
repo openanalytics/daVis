@@ -50,7 +50,6 @@
 #' if the alphaVar is 'numeric' or 'integer'.
 #' @param typePlot plot type, can be one of "static" or "interactive".
 #' @inheritParams createDataWaterfallPlot
-#' @import ggplot2
 #' @importFrom utils getFromNamespace
 #' @return ggplot object
 #' @author Katarzyna Gorczak
@@ -176,7 +175,7 @@ createDataWaterfallPlot <- function(
 #' @inheritParams daWaterfallPlot
 #' @param topTableOutput combined top tables for all coefficients
 #' @param multiplePlot logical whether to use facet_wrap on coefficients
-#' @import ggplot2
+#' @importFrom ggplot2 scale_y_discrete
 #' @return ggplot object
 #' @author Katarzyna Gorczak
 callWaterfallPlot <- function(
@@ -200,8 +199,8 @@ callWaterfallPlot <- function(
                scales = "free")
   
   g <- g +
-    ggplot2::scale_y_discrete(breaks = topTableOutput$grpLabel, 
-                              labels = topTableOutput$featuresVar) 
+    scale_y_discrete(breaks = topTableOutput$grpLabel, 
+                     labels = topTableOutput$featuresVar) 
   
   g <- ggPlotTheme(
     ggObject = g, title = title, titleSize = titleCex, xTitle = xlab, 
@@ -221,7 +220,8 @@ callWaterfallPlot <- function(
 #' Create main plot object with waterfall plot
 #' @inheritParams daWaterfallPlot
 #' @param topTableOutput combined topTables for all coefficients
-#' @import ggplot2
+#' @importFrom ggplot2 ggplot aes geom_bar
+#' @importFrom rlang sym
 #' @return ggplot object
 #' @author Katarzyna Gorczak
 mainWP <- function(
@@ -235,13 +235,13 @@ mainWP <- function(
     if(length(fillVar) > 0)	    list(fill = formatVariableSpace(fillVar)),
     if(length(alphaVar) > 0)	  list(alpha = formatVariableSpace(alphaVar))
   )
-  aesString <- c(    
-    list(data = topTableOutput, 
-         mapping = do.call(ggplot2::aes_string, c(
-           mainArgs, if(addHoverText) list(text = "hoverText"))))
+  mainArgs <- c(
+    mainArgs, 
+    if(addHoverText) list(text = "hoverText")
   )
-  
-  g <- do.call(getFromNamespace("ggplot", ns = "ggplot2"), aesString)
+  mainArgs <- lapply(mainArgs, sym)
+  aesString <- list(data = topTableOutput, mapping = do.call(aes, mainArgs))
+  g <- do.call(ggplot, aesString)
   
   aesBarArgs <- c(
     list(stat = "identity", width = 0.7),
@@ -250,7 +250,7 @@ mainWP <- function(
     if(setFixElement(alphaVar, alpha))          list(alpha = alpha),
     if(setCategoricalElement(topTableOutput, fillVar))  list(position = "dodge")
   )
-  g <- g + do.call(getFromNamespace("geom_bar", ns = "ggplot2"), aesBarArgs)
+  g <- g + do.call(geom_bar, aesBarArgs)
   g
 }
 
@@ -258,7 +258,9 @@ mainWP <- function(
 #' @inheritParams daWaterfallPlot
 #' @param topTableOutput combined topTables for all coefficients
 #' @param g ggplot object with volcano plot
-#' @import ggplot2
+#' @importFrom ggplot2 scale_color_gradientn scale_fill_gradientn scale_alpha 
+#' @importFrom ggplot2 guide_legend scale_color_manual 
+#' @importFrom ggplot2 scale_fill_manual scale_alpha_manual 
 #' @return ggplot object
 #' @author Katarzyna Gorczak
 formatAesWP <- function(
@@ -267,9 +269,8 @@ formatAesWP <- function(
   
   setManualScaleStatic <- function(typeVar, nameVar, valVar){
     values <- formatManualScale(x = topTableOutput, valVar, nameVar)
-    do.call(getFromNamespace(
-      paste("scale", typeVar, "manual", sep = "_"), ns = "ggplot2"),
-      list(values = values) )
+    do.call(paste("scale", typeVar, "manual", sep = "_"),
+            list(values = values))
   }
   
   if (setManualScale(topTableOutput, colorVar, color))	
@@ -279,12 +280,10 @@ formatAesWP <- function(
     g <- g + setManualScaleStatic("fill", fillVar, fill)
   
   if (setGradientScale(topTableOutput, colorVar, color))	
-    g <- g + do.call(getFromNamespace("scale_color_gradientn", ns = "ggplot2"), 
-                     list(colors = color))
+    g <- g + do.call(scale_color_gradientn, list(colors = color))
   
   if (setGradientScale(topTableOutput, fillVar, fill))	
-    g <- g + do.call(getFromNamespace("scale_fill_gradientn", ns = "ggplot2"), 
-                     list(colors = fill))
+    g <- g + do.call(scale_fill_gradientn, list(colors = fill))
   
   if (setManualScale(topTableOutput, alphaVar, alpha))
     g <- g + setManualScaleStatic("alpha", alphaVar, alpha)
@@ -292,9 +291,9 @@ formatAesWP <- function(
   # custom transparency range, works only if alpha var is numeric, or integer
   if (length(alphaVar) > 0 && class(topTableOutput[, alphaVar]) %in% 
       c("numeric", "integer") & length(alphaRange) > 0)
-    g <- g + ggplot2::scale_alpha(
+    g <- g + scale_alpha(
       range = alphaRange,
-      guide = ggplot2::guide_legend(override.aes = list(fill = "black")))
+      guide = guide_legend(override.aes = list(fill = "black")))
   
   g
 }

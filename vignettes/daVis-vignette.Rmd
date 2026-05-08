@@ -61,15 +61,6 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 BiocManager::install("daVis")
 ```
 
-<br>
-Note: to install development version direct from GitHub:
-```{r echo = TRUE, eval = FALSE}
-if (!requireNamespace("devtools", quietly = TRUE))
-  install.packages("devtools")
-
-devtools::install_github("openanalytics/daVis")
-```
-
 ## Load the package into R session
 
 ```{r echo = TRUE, eval = FALSE}
@@ -282,13 +273,10 @@ coefficient. Additionally, the features can be labeled by providing the
 coefs <- c("B.LvsP", "L.LvsP", "B.PvsV", "L.PvsV")
 
 features <- c(
-	daVis:::getTopFeatures(input = topTableList, coef = "B.LvsP", 
-		featuresIdVar = "ENTREZID", n = 10),
-	daVis:::getFeatures(input = topTableList, 
-		featuresIdVar = "ENTREZID")[10000:10009]
+  "72243", "66704", "11781", "226101", "14620", "381290", "16012", 
+  "100504225", "231830", "78896", "103889", "231991", "77034", "19687", 
+  "100043805", "16669", "226162", "24117", "55987", "11419" 
 )
-set.seed(123)
-features <- sample(features, 20)
 dt <- topTableList[['B.LvsP']]
 adjPVal <- dt[match(features, dt$ENTREZID), "adj.P.Val"]
 signFeature <- ifelse(adjPVal <= 0.05, "red", "grey")
@@ -305,7 +293,6 @@ daLogRatioPlot(
   featuresColor = signFeature,
   errorBars = FALSE
 )
-
 
 ```
 
@@ -664,8 +651,11 @@ created.
 
 ```{r waterfall-more-coef}
 coefs <- c("B.LvsP", "L.LvsP", "B.PvsV", "L.PvsV")
-features <- daVis:::getTopFeatures(input = res.limma, coef = "B.LvsP", 
-	featuresIdVar = "ENTREZID", n = 20)
+features <- c(
+  "24117", "381290", "226101", "78896", "231830", "16012", "16669", "55987",
+  "231991", "14620", "20317", "74747", "11636", "20482", "194126", "270150",
+  "17131", "16878", "20564", "73847" 
+)
 
 daWaterfallPlot(
   input = res.limma,

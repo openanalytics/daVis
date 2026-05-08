@@ -51,7 +51,6 @@
 #' @param ... Extra parameters passed to \code{geom_text_repel} to customize
 #' the position of the gene labels.
 #' @inheritParams createDataMAplot
-#' @import ggplot2
 #' @importFrom grDevices n2mfrow colorRampPalette pdf png
 #' @importFrom stats setNames
 #' @return ggplot object or a list with ggplot object and top genes highlighted 
@@ -259,7 +258,7 @@ createDataMAplot <- function(
 #' @param includeTableGenesOfInterest whether to label \code{genesToHighlight}
 #' @param topTableOutputGenesOfInterest data.frame with \code{genesToHighlight}
 #' @param multiplePlot whether to use facet_wrap on coefficients
-#' @import ggplot2
+#' @importFrom ggplot2 guides guide_legend
 #' @return ggplot object
 #' @author Katarzyna Gorczak
 callMAplot <- function(
@@ -314,7 +313,8 @@ callMAplot <- function(
 #' Create main plot object with MA plot
 #' @inheritParams daMAplot
 #' @param topTableOutput combined topTables for all coefficients
-#' @import ggplot2
+#' @importFrom ggplot2 ggplot aes geom_point geom_hline
+#' @importFrom rlang sym
 #' @return ggplot object
 #' @author Katarzyna Gorczak
 mainMA <- function(
@@ -329,14 +329,11 @@ mainMA <- function(
     if(direction)           list(color = 'direction'),
     if(length(sizeVar) > 0)	list(size = formatVariableSpace(sizeVar))
   )
+  mainArgs <- c(mainArgs, if(addHoverText) list(text = "hoverText"))
+  mainArgs <- lapply(mainArgs, sym)
   
-  aesString <- c(    
-    list(data = topTableOutput, 
-         mapping = do.call(ggplot2::aes_string, c(
-           mainArgs,if(addHoverText) list(text = "hoverText"))))
-  )
-  
-  g <- do.call(getFromNamespace("ggplot", ns = "ggplot2"), aesString)
+  aesString <- list(data = topTableOutput, mapping = do.call(aes, mainArgs))
+  g <- do.call(ggplot, aesString)
   
   aesPoint <- c(
     list(alpha = alpha),
@@ -345,8 +342,8 @@ mainMA <- function(
     list(show.legend = TRUE)
   )
   
-  g <- g + do.call(getFromNamespace("geom_point", ns = "ggplot2"), aesPoint)
-  g <- g + geom_hline(yintercept = 0, size = 0.2, color = "red")
+  g <- g + do.call(geom_point, aesPoint)
+  g <- g + geom_hline(yintercept = 0, linewidth = 0.2, color = "red")
   
   g
 }
@@ -355,7 +352,7 @@ mainMA <- function(
 #' @inheritParams daMAplot
 #' @param topTableOutput combined topTables for all coefficients
 #' @param g ggplot object with MA plot
-#' @import ggplot2
+#' @importFrom ggplot2 scale_color_manual scale_size_manual
 #' @return ggplot object
 #' @author Katarzyna Gorczak
 formatAesMA <- function(g, topTableOutput, direction, color, sizeVar, size) {
@@ -373,9 +370,8 @@ formatAesMA <- function(g, topTableOutput, direction, color, sizeVar, size) {
       nsign[3] <- nrow(topTableOutput) - sum(nsign)
       labels <- paste0(c("Up", "Down", "NS"), ": ", nsign)
     } else labels <- c("Up", "Down", "NS")
-    do.call(getFromNamespace(
-      paste("scale", typeVar, "manual", sep = "_"), ns = "ggplot2"),
-      list(values = values, labels = labels, drop = FALSE) )
+    do.call(paste("scale", typeVar, "manual", sep = "_"),
+            list(values = values, labels = labels, drop = FALSE))
   }
   
   if (direction & setManualScale(topTableOutput, 'direction', color))	

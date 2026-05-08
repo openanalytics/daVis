@@ -3,10 +3,13 @@ library(daVis)
 
 # example data for the test
 tmpDir <- tempfile();dir.create(tmpDir)
-exampleData <- createExampleData(path = tmpDir, output = c("limma", "topTable", "edgeR"))
+exampleData <- createExampleData(path = tmpDir, output = c("limma", "topTable", "edgeR", "deseq2"))
 res.limma <- exampleData$limma
 res.edger <- exampleData$edgeR
+res.deseq <- exampleData$DESeq2
 topTableList <- exampleData$topTable
+ttLong <- do.call(rbind, topTableList)
+ttLong$coef <- rep(names(topTableList), unname(sapply(topTableList, nrow)))
 
 # consider a subset of the features and coefficients for the tests
 set.seed(123)
