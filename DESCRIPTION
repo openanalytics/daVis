@@ -1,8 +1,8 @@
 Package: daVis
 Type: Package
 Title: Visualization Of Differential Expression Analysis
-Version: 0.99.2
-Date: 2026-05-08
+Version: 0.99.3
+Date: 2026-05-26
 Authors@R: c(
   person(given = "Katarzyna", family = "Gorczak", 
     role = c("aut", "cre"), 
