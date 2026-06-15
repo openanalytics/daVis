@@ -42,7 +42,8 @@ Suggests:
     S4Vectors,
     scales,
     testthat,
-    tools
+    tools,
+    BiocStyle
 URL: https://github.com/openanalytics/daVis
 BugReports: https://github.com/openanalytics/daVis/issues
 License: GPL-3
